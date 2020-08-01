@@ -16,10 +16,14 @@ limitations under the License.
 package cmd
 
 import (
+	"log"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/venkyvb/msft-xl-graph-test/internal"
 )
+
+
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -28,24 +32,20 @@ var runCmd = &cobra.Command{
 	Long: `Run the MSFT Graph Excel API tests`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		accessToken := viper.GetString("accessToken")
-		workbookItemID := viper.GetString("workbookItemID")
-		noOfIterations := viper.GetInt("noOfIterations")
+		var config apiutils.Config
+		err := viper.Unmarshal(&config)
+		if err != nil {
+			log.Fatalf("unable to decode into struct, %v", err)
+		}
 
-		apiutils.RunTests(accessToken, workbookItemID, noOfIterations)
+		if len(config.InputParams) == 0 {
+			config.InputParams = apiutils.GetDefaultInput()
+		}
+
+		apiutils.RunTests(config)
 	},
 }
 
 func init() {
-	var accessToken string
-	var workbookItemID string
-	var noOfIterations int
-
 	rootCmd.AddCommand(runCmd)
-
-	runCmd.Flags().StringVarP(&accessToken, "accessToken", "a", "", "Enter the accessToken")
-	runCmd.Flags().StringVarP(&workbookItemID, "workbookItemID", "w", "", "Enter the workbookItemID")
-	runCmd.Flags().IntVarP(&noOfIterations, "noOfIterations", "n", 1, "Enter the noOfIterations, default would be 1")	
-
-	viper.BindPFlags(runCmd.Flags())
 }

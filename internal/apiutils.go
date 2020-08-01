@@ -11,6 +11,18 @@ import (
 	"sync"
 )
 
+type Config struct {
+	AccessToken string
+	WorkbookItemID string
+	NoOfIterations int
+	InputParams []InputParam
+}
+
+type InputParam struct {
+	MemCnt int
+	RecCnt int
+	Curr string
+}
 
 type ResponsePayload struct {
 	OdataContext  string          `json:"@odata.context"`
@@ -46,14 +58,10 @@ type ErrorResponse struct {
 	} `json:"error"`
 }
 
-func RunTests(accessToken string, workbookItemID string, noOfIterations int) {
-
-	var memCnt = []int{230, 1230, 12300, 36900, 2500}
-	var recCnt = []int{29, 79, 260, 749, 441}
-	var curr = []string{"USD", "CAD", "GBP", "EUR", "AUD"}
+func RunTests(config Config) {
 
 	// first test if the AccessToken is valid
-	_,err := createSession(accessToken, workbookItemID)
+	_,err := createSession(config.AccessToken, config.WorkbookItemID)
 
 	if err != nil {
 		fmt.Printf("Unable to create a session. Access Token expired??\n")
@@ -62,14 +70,12 @@ func RunTests(accessToken string, workbookItemID string, noOfIterations int) {
 
 	var wg sync.WaitGroup
 
-	for i := 0; i < noOfIterations+1; i++ {
+	for i := 0; i < config.NoOfIterations+1; i++ {
 
-		for j := 0; j < len(memCnt); j++ {
+		for j := 0; j < len(config.InputParams); j++ {
 			wg.Add(1)
-			mc := memCnt[j]
-			rc := recCnt[j]
-			curr := curr[j]
-			go execScenario(accessToken, workbookItemID, &wg, mc, rc, curr)
+			ip := config.InputParams[j]
+			go execScenario(config.AccessToken, config.WorkbookItemID, &wg, ip.MemCnt, ip.RecCnt, ip.Curr)
 		}
 
 		wg.Wait()
@@ -194,4 +200,17 @@ func readOutput(accessToken string, workbookItemID string, sessionID string, mem
 
 	fmt.Printf("Input - [%d, %d, %s]  Result - %+v\n", memCnt, recCnt, curr, parsedResponse.Values)
 
+}
+
+func GetDefaultInput() []InputParam{
+
+	var result []InputParam
+
+	result = append(result, InputParam{ MemCnt: 230, RecCnt: 79, Curr: "USD"})
+	result = append(result, InputParam{ MemCnt: 1230, RecCnt: 79, Curr: "CAD"})
+	result = append(result, InputParam{ MemCnt: 12300, RecCnt: 260, Curr: "GBP"})
+	result = append(result, InputParam{ MemCnt: 36900, RecCnt: 749, Curr: "EUR"})
+	result = append(result, InputParam{ MemCnt: 2500, RecCnt: 441, Curr: "AUD"})
+
+	return result
 }
