@@ -48,8 +48,9 @@ type ErrorResponse struct {
 
 func RunTests(accessToken string, workbookItemID string, noOfIterations int) {
 
-	var memCnt = []int{230, 1230, 12300, 36900}
-	var recCnt = []int{29, 79, 260, 749}
+	var memCnt = []int{230, 1230, 12300, 36900, 2500}
+	var recCnt = []int{29, 79, 260, 749, 441}
+	var curr = []string{"USD", "CAD", "GBP", "EUR", "AUD"}
 
 	// first test if the AccessToken is valid
 	_,err := createSession(accessToken, workbookItemID)
@@ -67,7 +68,8 @@ func RunTests(accessToken string, workbookItemID string, noOfIterations int) {
 			wg.Add(1)
 			mc := memCnt[j]
 			rc := recCnt[j]
-			go execScenario(accessToken, workbookItemID, &wg, mc, rc)
+			curr := curr[j]
+			go execScenario(accessToken, workbookItemID, &wg, mc, rc, curr)
 		}
 
 		wg.Wait()
@@ -77,7 +79,7 @@ func RunTests(accessToken string, workbookItemID string, noOfIterations int) {
 }
 
 
-func execScenario(accessToken string, workbookItemID string, wg *sync.WaitGroup, memCnt int, recCnt int) {
+func execScenario(accessToken string, workbookItemID string, wg *sync.WaitGroup, memCnt int, recCnt int, curr string) {
 
 	defer wg.Done()
 
@@ -90,16 +92,16 @@ func execScenario(accessToken string, workbookItemID string, wg *sync.WaitGroup,
 	}
 
 	// Patch call
-	sendInputParams(accessToken, workbookItemID, sessionID, memCnt, recCnt)
+	sendInputParams(accessToken, workbookItemID, sessionID, memCnt, recCnt, curr)
 
 	// Get call
-	readOutput(accessToken, workbookItemID, sessionID, memCnt, recCnt)
+	readOutput(accessToken, workbookItemID, sessionID, memCnt, recCnt, curr)
 }
 
-func sendInputParams(accessToken string, workbookItemID string, sessionID string, memCnt int, recCnt int) {
+func sendInputParams(accessToken string, workbookItemID string, sessionID string, memCnt int, recCnt int, curr string) {
 
-	s := fmt.Sprintf(`{"values" : [["%d"]] }`, memCnt)
-	u := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/drive/items/%s/workbook/worksheets('InputOutput')/range(address='C3')", workbookItemID)
+	s := fmt.Sprintf(`{"values" : [["%d"],["%d"],["%s"]] }`, memCnt, recCnt, curr)
+	u := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/drive/items/%s/workbook/worksheets('InputOutput')/range(address='C3:C5')", workbookItemID)
 
 	requestBody := ioutil.NopCloser(strings.NewReader(s))
 
@@ -162,7 +164,7 @@ func createSession(accessToken string, workbookItemID string) (string, error) {
 	return sessionID, nil
 }
 
-func readOutput(accessToken string, workbookItemID string, sessionID string, memCnt int, recCnt int) {
+func readOutput(accessToken string, workbookItemID string, sessionID string, memCnt int, recCnt int, curr string) {
 
 	u := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/drive/items/%s/workbook/worksheets('InputOutput')/range(address='C9:C11')", workbookItemID)
 	getURL, _ := url.Parse(u)
@@ -190,6 +192,6 @@ func readOutput(accessToken string, workbookItemID string, sessionID string, mem
 	var parsedResponse ResponsePayload
 	err = json.Unmarshal(data, &parsedResponse)
 
-	fmt.Printf("MemCnt - %d, RecCnt - %d, Result - %+v\n", memCnt, recCnt, parsedResponse.Values)
+	fmt.Printf("Input - [%d, %d, %s]  Result - %+v\n", memCnt, recCnt, curr, parsedResponse.Values)
 
 }
