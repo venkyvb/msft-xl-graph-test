@@ -35,3 +35,44 @@ inputParams:
     recCnt: 441
     curr: USD      
 ```    
+
+The equivalent JSON config file would be as follows
+```
+{
+    "accessToken": "<access_token_from_graph_explorer>",
+    "workbookItemID": "<workbookItemID_for_the_test_workbook>",
+    "noOfIterations": 5,
+    "inputParams": [
+        {
+            "memCnt": 230,
+            "recCnt": 79,
+            "curr": "USD"
+        },
+        {
+            "memCnt": 1230,
+            "recCnt": 79,
+            "curr": "CAD"
+        },
+        {
+            "memCnt": 12300,
+            "recCnt": 260,
+            "curr": "GBP"
+        },
+        {
+            "memCnt": 36900,
+            "recCnt": 749,
+            "curr": "EUR"
+        },
+        {
+            "memCnt": 2500,
+            "recCnt": 441,
+            "curr": "AUD"
+        },
+        {
+            "memCnt": 2500,
+            "recCnt": 441,
+            "curr": "USD"
+        }
+    ]
+}
+```
