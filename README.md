@@ -4,6 +4,8 @@ This test program uses MSFT Graph API for Excel to populate a set of input cells
 
 In order to run the test a config file either in `yaml` or `json` format should be provided as input. THe structure of the `yaml` file is as shown below.
 
+To get the workbookItemID you can search the one-drive using Graph API (via the graph-explorer) e.g. https://graph.microsoft.com/v1.0/me/drive/root/search(q='.xlsx')?select=name,id,webUrl
+
 To run the test
 
 ```
